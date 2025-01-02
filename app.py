@@ -3,16 +3,20 @@ import re
 from PySide6 import QtWidgets, QtGui, QtCore
 from PySide6.QtGui import QIntValidator
 from utils.cnpj import processar_cnpjs, buscar_informacoes
+from utils.icone import baixar_icone, usar_icone
 from db.conexao import conectar_com_banco
 from PySide6.QtGui import QIntValidator
 from PySide6.QtWidgets import QMessageBox
 import asyncio
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 class MainWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Consultor de Produto')
         self.setGeometry(400, 200, 900, 700)
+        
 
         # Layout principal
         self.layout = QtWidgets.QVBoxLayout()
@@ -70,6 +74,7 @@ class MainWindow(QtWidgets.QWidget):
             
             # Passar a informação sobre o CNAE para a próxima janela
             self.product_window = ProductWindow(razao_social,cnpj ,existe_no_lista, cnae_codigo, uf, simples)  # Passando a variável correta
+            usar_icone(self.product_window)
             self.product_window.showMaximized()
             self.close()
 
@@ -94,6 +99,7 @@ class ProductWindow(QtWidgets.QWidget):
             f"<p><b>CNPJ:</b> {cnpj} | <b>CNAE:</b> {cnae_codigo} | <b>UF:</b> {uf}</p>"
             f"<p><b>Decreto:</b> {cnae_valido} | <b>Simples:</b> {simples}</p>"
         )
+
         # Campo para o código do produto
         self.product_code_label = QtWidgets.QLabel('Insira o código do produto:')
         self.product_code_label.setStyleSheet("font-size: 16px; font-weight: bold;")
@@ -116,7 +122,6 @@ class ProductWindow(QtWidgets.QWidget):
         self.value_input = QtWidgets.QLineEdit()
         self.value_input.setPlaceholderText('Digite o valor')
         self.value_input.setStyleSheet("font-size: 16px; padding: 6px;")
-        
 
         # Layouts para organizar os campos
         product_code_layout = QtWidgets.QHBoxLayout()
@@ -132,10 +137,16 @@ class ProductWindow(QtWidgets.QWidget):
         value_layout.addWidget(self.value_input)
 
         # Botão de finalizar
-        self.finish_button = QtWidgets.QPushButton('Enviar')
+        self.finish_button = QtWidgets.QPushButton('Consultar')
         self.finish_button.setStyleSheet("font-size: 16px; font-weight: bold; padding: 10px; background-color: #001F3F;")
         self.finish_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.finish_button.clicked.connect(self.finish_process)
+
+        # Campo para exibir a mensagem de resumo
+        self.result_label = QtWidgets.QLabel()
+        self.result_label.setWordWrap(True)
+        self.result_label.setStyleSheet("font-size: 14px; margin-top: 20px;")
+        self.result_label.hide()  # Esconde o campo inicialmente
 
         # Adicionar widgets ao layout principal
         self.layout.addWidget(self.info_label)
@@ -143,14 +154,15 @@ class ProductWindow(QtWidgets.QWidget):
         self.layout.addLayout(quantity_layout)
         self.layout.addLayout(value_layout)
         self.layout.addWidget(self.finish_button)
+        self.layout.addWidget(self.result_label)
         self.layout.addStretch()
 
         self.setLayout(self.layout)
 
-        # Armazenar a informação sobre o CNAE
         self.cnae_valido = cnae_valido
         self.uf = uf
         self.simples = simples
+        self.razao_social = razao_social
 
     def finish_process(self):
         # Obter os valores dos campos
@@ -160,66 +172,75 @@ class ProductWindow(QtWidgets.QWidget):
 
         # Verificar se todos os campos foram preenchidos
         if not product_code or not quantity or not value:
-            QtWidgets.QMessageBox.warning(self, 'Erro', 'Por favor, preencha todos os campos.')
+            self.result_label.setText("<p style='color: red;'>Por favor, preencha todos os campos.</p>")
+            self.result_label.show()
             return
 
         # Calcular o valor total
         total_value = float(quantity) * float(value)
         total_valor_com_imposto = total_value
 
+        # Consulta ao banco de dados (exemplo simplificado)
         conexao = conectar_com_banco()
         cursor = conexao.cursor()
         cursor.execute("USE atacado_do_vale_comercio_de_alimentos_ltda")
         cursor.execute("SELECT produto, ncm, aliquota FROM cadastro_tributacao WHERE codigo = %s", (product_code,))
-
         result = cursor.fetchone()
-        print(result)
+
         if result:
             produto, ncm, aliquota = result
         else:
-            print(f"Nenhum registro encontrado para o código {product_code}.")
             info_message = "Código de produto não encontrado."
             QtWidgets.QMessageBox.warning(self, 'Erro', info_message)
             return
-        # Se o CNPJ não tem CNAE válido, adicionar R$ 10 ao total
+
+        # Se o CNPJ não tem CNAE válido, calcular imposto
         if self.cnae_valido == 'Não' and self.uf == 'CE' and self.simples == 'Não':
-
             if re.match(r'^\d', aliquota):
+                aliquota_percentual = float(aliquota.replace('%', '').strip())
+                total_valor_com_imposto += total_value * (aliquota_percentual / 100)
 
-                aliquota_percentual = float(aliquota.replace('%', '').strip()) 
-                total_valor_com_imposto += total_value * (aliquota_percentual/100)
-
-            else:
-                print(f"Alíquota 0")
-        
+        # Criar mensagem de resumo
         info_message = f"""
-        <h3 style="color: #2e86c1; text-align: center;">Resumo</h3>
-        <p><strong>Código do Produto:</strong> {product_code}</p>
-        <p><strong>Produto:</strong> {produto}</p>
-        <p><strong>NCM:</strong> {ncm}</p>
-        <p><strong>Quantidade:</strong> {quantity}</p>
-        <p><strong>Valor Unitário:</strong> R$ {float(value):.2f}</p>
-        <p><strong>Valor Total:</strong> <span style="color: #28b463;">R$ {total_value:.2f}</span></p>
-        <p><strong>Aliquota:</strong> {aliquota}</p>
-        <p><strong>Valor Total com Imposto:</strong> <span style="color: #c0392b;">R$ {total_valor_com_imposto:.2f}</span></p>
+            <p style="font-size: 28px;"><strong>Resumo</strong></p>
+            <p style="font-size: 18px;"><strong>Código do Produto:</strong> {product_code}</p>
+            <p style="font-size: 18px;"><strong>Produto:</strong> {produto}</p>
+            <p style="font-size: 18px;"><strong>NCM:</strong> {ncm}</p>
+            <p style="font-size: 18px;"><strong>Quantidade:</strong> {quantity}</p>
+            <p style="font-size: 18px;"><strong>Valor Unitário:</strong> R$ {float(value):.2f}</p>
+            <p style="font-size: 18px;"><strong>Valor Total:</strong> R$ {total_value:.2f}</p>
+            <p style="font-size: 18px;"><strong>Aliquota:</strong> {aliquota}</p>
+            <p style="font-size: 18px;"><strong>Valor Total com Imposto:</strong> R$ {total_valor_com_imposto:.2f}</p>
         """
-        msg_box = QtWidgets.QMessageBox(self)
-        msg_box.setWindowTitle("Resumo do Produto")
-        msg_box.setIcon(QtWidgets.QMessageBox.Information)  # Ícone de informação
-        msg_box.setTextFormat(QtCore.Qt.RichText)  # Habilitar formatação HTML
-        msg_box.setText(info_message)
+        self.result_label.setText(info_message)
+        self.result_label.show()
 
-        # Configurar o botão
-        msg_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        ok_button = msg_box.button(QtWidgets.QMessageBox.Ok)
-        ok_button.setStyleSheet("background-color: #2e86c1; color: white; font-weight: bold;")
+        # Gerar o PDF do resumo
+        pdf_path = QtWidgets.QFileDialog.getSaveFileName(self, 'Salvar PDF', f'{product_code}_{self.razao_social}.pdf', 'PDF Files (*.pdf)')[0]
+        if pdf_path:
+            self.generate_pdf(pdf_path, product_code, produto, ncm, quantity, value, total_value, aliquota, total_valor_com_imposto)
 
-        # Exibir a mensagem
-        msg_box.exec()
+    def generate_pdf(self, file_path, product_code, produto, ncm, quantity, value, total_value, aliquota, total_valor_com_imposto):
+        pdf = canvas.Canvas(file_path, pagesize=letter)
+        pdf.setFont("Helvetica", 12)
+        pdf.drawString(100, 750, "Resumo de Consulta")
+
+        pdf.drawString(100, 720, f"Código do Produto: {product_code}")
+        pdf.drawString(100, 700, f"Produto: {produto}")
+        pdf.drawString(100, 680, f"NCM: {ncm}")
+        pdf.drawString(100, 660, f"Quantidade: {quantity}")
+        pdf.drawString(100, 640, f"Valor Unitário: R$ {float(value):.2f}")
+        pdf.drawString(100, 620, f"Valor Total: R$ {total_value:.2f}")
+        pdf.drawString(100, 600, f"Aliquota: {aliquota}")
+        pdf.drawString(100, 580, f"Valor Total com Imposto: R$ {total_valor_com_imposto:.2f}")
+
+        pdf.save()
+        QtWidgets.QMessageBox.information(self, 'PDF Salvo', f'PDF salvo em: {file_path}')
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
     main_window = MainWindow()
+    usar_icone(main_window)
     main_window.showMaximized()
     sys.exit(app.exec())
 
