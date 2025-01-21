@@ -1,5 +1,7 @@
 import sys
 import locale
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import re
 import os
 from PySide6 import QtWidgets, QtGui, QtCore
@@ -45,11 +47,11 @@ class UserLogin(QtWidgets.QWidget):
             font-size: 20px;
             font-weight: bold;
             padding: 10px;
-            background-color: #001F3F;
+            background-color:#001F3F;
         }
         QPushButton:hover {
-            background-color: #005588;  /* Cor de fundo quando o mouse passa sobre o botão */
-            color: #ffffff;  /* Cor do texto quando o mouse passa sobre o botão */
+            background-color:#005588;  /* Cor de fundo quando o mouse passa sobre o botão */
+            color:#ffffff;  /* Cor do texto quando o mouse passa sobre o botão */
         }""")
         self.login_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.login_button.clicked.connect(self.validate_login)
@@ -115,10 +117,11 @@ class MainWindow(QtWidgets.QWidget):
         self.layout.setSpacing(10)
 
         # Campo de entrada para CNPJ
-        self.cnpj_label = QtWidgets.QLabel('Insira o CNPJ:')
+        self.cnpj_label = QtWidgets.QLabel('Insira o CNPJ do fornecedor:')
         self.cnpj_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #fff;")
         self.cnpj_input = QtWidgets.QLineEdit()
         self.cnpj_input.setStyleSheet("font-size: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; ")
+        self.cnpj_input.setFixedWidth(400)
 
         # Validador para aceitar apenas números e configurar máscara de CNPJ
         int_validator = QIntValidator()
@@ -149,7 +152,8 @@ class MainWindow(QtWidgets.QWidget):
 
         # Cria um grupo para o layout
         group_box = QtWidgets.QGroupBox()
-        group_box.setStyleSheet("background-color:#2a3338; padding: 20px; border-radius: 10px;")
+        group_box.setStyleSheet("background-color: #2a3338; padding: 20px; border-radius: 10px;")
+
 
         # Adiciona o layout ao grupo
         group_box_layout = QtWidgets.QVBoxLayout()
@@ -160,8 +164,19 @@ class MainWindow(QtWidgets.QWidget):
         self.info_message = QtWidgets.QLabel()
         self.info_message.setWordWrap(True)
         self.info_message.setStyleSheet("font-size: 16px; font-weight: bold; text-align: center;")
+        data_atual = datetime.now()
+        print(f"Data atual: {data_atual}")
+# Pega a data do mês anterior
+        data_anterior = data_atual - relativedelta(months=1)
+
+        # Pega o mês e o ano do mês anterior
+        mes_anterior = data_anterior.month
+        ano_anterior = data_anterior.year
+
+        print(f"Mês anterior: {mes_anterior}")
+        print(f"Ano anterior: {ano_anterior}")
         self.info_message.setText(
-            "<p>Atualizado até 12/24 v1.0</p>"
+            f"<p>Atualizado até {mes_anterior}/{ano_anterior} v1.0</p>"
             "<h2>Desenvolvido por: Assertivus Contábil</h2>"
         )
 
@@ -280,57 +295,53 @@ class ProductWindowCE(QtWidgets.QWidget):
 
         self.info_label = QtWidgets.QLabel()
         self.info_label.setWordWrap(True)
-        self.info_label.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 10px;")
+        self.info_label.setStyleSheet("font-size: 20px; font-weight: bold; margin-bottom: 10px;")
         self.info_label.setText(
             f"<h3>Razão Social: {razao_social}</h3>"
             f"<p><b>CNPJ:</b> {cnpj} | <b>CNAE:</b> {cnae_codigo} | <b>UF:</b> {uf}</p>"
             f"<p><b>Decreto:</b> {cnae_valido} | <b>Simples:</b> {simples}</p>"
+            f"<hr>"
         )
 
         # Campo para o código do produto
         self.product_code_label = QtWidgets.QLabel('Insira o código do produto:')
-        self.product_code_label.setStyleSheet("font-size: 16px; font-weight: bold;")
+        self.product_code_label.setStyleSheet("font-size: 22px; font-weight: bold;")
         self.product_code_input = QtWidgets.QLineEdit()
         self.product_code_input.setPlaceholderText('Digite o código do produto')
         self.product_code_input.setValidator(QIntValidator())
-        self.product_code_input.setStyleSheet("font-size: 16px; padding: 6px;")
-
-        # Campo para a quantidade
-        self.quantity_label = QtWidgets.QLabel('Insira a quantidade:')
-        self.quantity_label.setStyleSheet("font-size: 16px; font-weight: bold;")
-        self.quantity_input = QtWidgets.QLineEdit()
-        self.quantity_input.setPlaceholderText('Digite a quantidade')
-        self.quantity_input.setValidator(QIntValidator())
-        self.quantity_input.setStyleSheet("font-size: 16px; padding: 6px;")
-
-        # Campo para o valor
-        self.value_label = QtWidgets.QLabel('Insira o valor:')
-        self.value_label.setStyleSheet("font-size: 16px; font-weight: bold;")
-        self.value_input = QtWidgets.QLineEdit()
-        self.value_input.setPlaceholderText('Digite o valor')
-        self.value_input.setStyleSheet("font-size: 16px; padding: 6px;")
+        self.product_code_input.setStyleSheet("font-size: 20px; padding: 6px; border: 1px solid #ccc; border-radius: 5px;")
 
         # Layouts para organizar os campos
         product_code_layout = QtWidgets.QHBoxLayout()
         product_code_layout.addWidget(self.product_code_label)
         product_code_layout.addWidget(self.product_code_input)
 
-        quantity_layout = QtWidgets.QHBoxLayout()
-        quantity_layout.addWidget(self.quantity_label)
-        quantity_layout.addWidget(self.quantity_input)
-
-        value_layout = QtWidgets.QHBoxLayout()
-        value_layout.addWidget(self.value_label)
-        value_layout.addWidget(self.value_input)
-
         # Botão de finalizar
         self.finish_button = QtWidgets.QPushButton('Consultar')
-        self.finish_button.setStyleSheet("font-size: 16px; font-weight: bold; padding: 10px; background-color: #001F3F;")
+        self.finish_button.setStyleSheet("""QPushButton {
+            font-size: 20px;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #001F3F;
+        }
+        QPushButton:hover {
+            background-color: #005588;  /* Cor de fundo quando o mouse passa sobre o botão */
+            color: #ffffff;  /* Cor do texto quando o mouse passa sobre o botão */
+        }""")
         self.finish_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.finish_button.clicked.connect(self.finish_process)
+        self.finish_button.clicked.connect(self.resumo)
 
-        self.btn_voltar = QtWidgets.QPushButton('Voltar')
-        self.btn_voltar.setStyleSheet("font-size: 16px; font-weight: bold; padding: 10px; background-color: #001F3F;")
+        self.btn_voltar = QtWidgets.QPushButton('Novo Fornecedor')
+        self.btn_voltar.setStyleSheet("""QPushButton {
+            font-size: 20px;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #001F3F;
+        }
+        QPushButton:hover {
+            background-color: #005588;  /* Cor de fundo quando o mouse passa sobre o botão */
+            color: #ffffff;  /* Cor do texto quando o mouse passa sobre o botão */
+        }""")
         self.btn_voltar.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.btn_voltar.clicked.connect(self.voltar)
 
@@ -340,17 +351,35 @@ class ProductWindowCE(QtWidgets.QWidget):
         self.result_label.setStyleSheet("font-size: 14px; margin-top: 20px;")
         self.result_label.hide()  # Esconde o campo inicialmente
 
-        # Adicionar widgets ao layout principal
-        self.layout.addWidget(self.info_label)
-        self.layout.addLayout(product_code_layout)
-        self.layout.addLayout(quantity_layout)
-        self.layout.addLayout(value_layout)
-        self.layout.addWidget(self.finish_button)
-        self.layout.addWidget(self.btn_voltar)
-        self.layout.addWidget(self.result_label)
-        self.layout.addStretch()
+        # Cria um grupo para o layout
+        group_box = QtWidgets.QGroupBox()
+        group_box.setStyleSheet("background-color: #2a3338; padding: 16px; border-radius: 10px;")
+        group_box.setFixedWidth(800)
+        # group_box.setMinimumWidth(600)
 
-        self.setLayout(self.layout)
+        # Adiciona o layout ao grupo
+        group_box_layout = QtWidgets.QVBoxLayout()
+        group_box_layout.addWidget(self.info_label)
+        group_box_layout.addLayout(product_code_layout)
+        group_box_layout.addWidget(self.finish_button)
+        group_box_layout.addWidget(self.btn_voltar)
+        group_box_layout.addWidget(self.result_label)
+        group_box_layout.addStretch()
+        group_box.setLayout(group_box_layout)
+
+        # Cria um layout horizontal para centralizar o conteúdo
+        horizontal_layout = QtWidgets.QHBoxLayout()
+        horizontal_layout.addStretch()  # Adiciona stretch à esquerda
+        horizontal_layout.addWidget(group_box)  # Adiciona o grupo ao layout
+        horizontal_layout.addStretch()  # Adiciona stretch à direita
+
+        # Cria um layout vertical para adicionar o layout horizontal
+        vertical_layout = QtWidgets.QVBoxLayout()
+        vertical_layout.addStretch()  # Adiciona stretch no topo
+        vertical_layout.addLayout(horizontal_layout)  # Adiciona o layout horizontal
+        vertical_layout.addStretch()  # Adiciona stretch no fundo
+
+        self.setLayout(vertical_layout)
 
         self.cnae_valido = cnae_valido
         self.uf = uf
@@ -366,24 +395,8 @@ class ProductWindowCE(QtWidgets.QWidget):
 
     def finish_process(self):
         self.result_label.hide()
-        # Obter os valores dos campos
         product_code = self.product_code_input.text().strip()
-        quantity = self.quantity_input.text().strip()
-        value = self.value_input.text().strip()
 
-        value = value.replace('.', '').replace(',', '.')
-
-        # Verificar se todos os campos foram preenchidos
-        if not product_code or not quantity or not value:
-            self.result_label.setText("<p style='color: red;'>Por favor, preencha todos os campos.</p>")
-            self.result_label.show()
-            return
-
-        # Calcular o valor total
-        total_value = float(quantity) * float(value)
-        total_valor_com_imposto = total_value
-
-        # Consulta ao banco de dados (exemplo simplificado)
         conexao = conectar_com_banco()
         cursor = conexao.cursor()
         cursor.execute("USE atacado_do_vale_comercio_de_alimentos_ltda")
@@ -396,34 +409,14 @@ class ProductWindowCE(QtWidgets.QWidget):
             info_message = "Código de produto não encontrado."
             QtWidgets.QMessageBox.warning(self, 'Erro', info_message)
             return
-
-        # Se o CNPJ não tem CNAE válido, calcular imposto
-        if self.cnae_valido == 'Não' and self.uf == 'CE' and self.simples == 'Não':
-            valor_imposto = 0
-            if re.match(r'^\d', aliquota):
-                aliquota_percentual = float(aliquota.replace('%', '').strip())
-                valor_imposto = total_value * (aliquota_percentual / 100)
-                total_valor_com_imposto += total_value * (aliquota_percentual / 100)
-
-
-        formatted_value = locale.currency(float(value), grouping=True, symbol=False)
-        formatted_total_value = locale.currency(total_value, grouping=True, symbol=False)
-        formatted_valor_imposto = locale.currency(valor_imposto, grouping=True, symbol=False)
-        formatted_total_valor_com_imposto = locale.currency(total_valor_com_imposto, grouping=True, symbol=False)
-
         # Criar mensagem de resumo
         info_message = f"""
             <p style="font-size: 28px;"><strong>Resumo</strong></p>
             <p style="font-size: 18px;"><strong>Código do Produto:</strong> {product_code}</p>
             <p style="font-size: 18px;"><strong>Produto:</strong> {produto}</p>
             <p style="font-size: 18px;"><strong>NCM:</strong> {ncm}</p>
-            <p style="font-size: 18px;"><strong>Quantidade:</strong> {quantity}</p>
-            <p style="font-size: 18px;"><strong>Valor Unitário:</strong> R$ {formatted_value}</p>
-            <p style="font-size: 18px;"><strong>Valor Total:</strong> R$ {formatted_total_value}</p>
             <p style="font-size: 18px;"><strong>Aliquota:</strong> {aliquota}</p>
-            <p style="font-size: 18px;"><strong>Valor do Imposto:</strong> R$ {formatted_valor_imposto}</p>
-            <p style="font-size: 18px;"><strong>Valor Total com Imposto:</strong> R$ {formatted_total_valor_com_imposto}</p>
-            <h1>Produto com imposto de {formatted_valor_imposto}</h1>
+            <h1>Produto com imposto de {aliquota}</h1>
         """
         self.result_label.setText(info_message)
         self.result_label.show()
@@ -436,10 +429,10 @@ class ProductWindowCE(QtWidgets.QWidget):
 
         pdf_path = os.path.join(produtos_folder, f'{product_code}_{self.razao_social}.pdf')
         
-        self.generate_pdf(pdf_path, product_code, produto, ncm, quantity, value, total_value, aliquota, valor_imposto ,total_valor_com_imposto)
+        self.generate_pdf(pdf_path, product_code, produto, ncm, aliquota )
         QtWidgets.QMessageBox.information(self, 'PDF Salvo', f'PDF salvo em: {pdf_path}')
 
-    def generate_pdf(self, file_path, product_code, produto, ncm, quantity, value, total_value, aliquota, valor_imposto ,total_valor_com_imposto):
+    def generate_pdf(self, file_path, product_code, produto, ncm, aliquota):
         pdf = canvas.Canvas(file_path, pagesize=letter)
         pdf.setFont("Helvetica", 12)
         pdf.drawString(100, 750, "Resumo de Consulta")
@@ -450,14 +443,131 @@ class ProductWindowCE(QtWidgets.QWidget):
         pdf.drawString(100, 670, f"Código do Produto: {product_code}")
         pdf.drawString(100, 650, f"Produto: {produto}")
         pdf.drawString(100, 630, f"NCM: {ncm}")
-        pdf.drawString(100, 610, f"Quantidade: {quantity}")
-        pdf.drawString(100, 590, f"Valor Unitário: R$ {float(value):.2f}")
-        pdf.drawString(100, 570, f"Valor Total: R$ {total_value:.2f}")
-        pdf.drawString(100, 550, f"Aliquota: {aliquota}")
-        pdf.drawString(100, 530, f"Valor do Imposto: R$ {valor_imposto:.2f}")
-        pdf.drawString(100, 510, f"Valor Total com Imposto: R$ {total_valor_com_imposto:.2f}")
+        pdf.drawString(100, 610, f"Aliquota: {aliquota}")
 
         pdf.save()
+    
+    def resumo(self):
+        product_code = self.product_code_input.text().strip()
+        conexao = conectar_com_banco()
+        cursor = conexao.cursor()
+        cursor.execute("USE atacado_do_vale_comercio_de_alimentos_ltda")
+        cursor.execute("SELECT produto, ncm, aliquota FROM cadastro_tributacao WHERE codigo = %s", (product_code,))
+        result = cursor.fetchone()
+
+        if result:
+            produto, ncm, aliquota = result
+        else:
+            info_message = "Código de produto não encontrado."
+            QtWidgets.QMessageBox.warning(self, 'Erro', info_message)
+            return
+        downloads_folder = os.path.join(os.path.expanduser("~"), "Downloads")
+        produtos_folder = os.path.join(downloads_folder, "produtos")
+        os.makedirs(produtos_folder, exist_ok=True)
+
+        pdf_path = os.path.join(produtos_folder, f'{product_code}_{self.razao_social}.pdf')
+        
+        self.generate_pdf(pdf_path, product_code, produto, ncm, aliquota )
+        QtWidgets.QMessageBox.information(self, 'PDF Salvo', f'PDF salvo em: {pdf_path}')
+        self.resumo_window = ResumoWindow(self, self.main_window ,self.razao_social, self.cnpj, self.cnae_valido, self.cnae_codigo, self.uf, self.simples, product_code, produto, ncm, aliquota)
+        self.resumo_window.showMaximized()
+        self.close()
+
+class ResumoWindow(QtWidgets.QWidget):
+    def __init__(self, product_window, main_window, razao_social, cnpj, cnae_valido, cnae_codigo, uf, simples, product_code, produto, ncm, aliquota):
+        super().__init__()
+        self.product_window = product_window
+        self.main_window = main_window
+        self.setWindowTitle('Resumo da Consulta')
+        self.setGeometry(400, 200, 900, 700)
+
+        self.layout = QtWidgets.QVBoxLayout()
+        self.layout.setContentsMargins(20, 20, 20, 20)
+
+        self.info_label = QtWidgets.QLabel()
+        self.info_label.setWordWrap(True)
+        self.info_label.setStyleSheet("font-size: 20px; font-weight: bold; margin-bottom: 10px;")
+        self.info_label.setText(
+            f"<h1>Resumo da Consulta</h1>"
+            f"<h2>Dados do Fornecedor</h2>"
+            f"<h3>Razão Social: {razao_social}</h3>"
+            f"<p><b>CNPJ:</b> {cnpj} | <b>CNAE:</b> {cnae_codigo} | <b>UF:</b> {uf}</p>"
+            f"<p><b>Decreto:</b> {cnae_valido} | <b>Simples:</b> {simples}</p>"
+            f"<hr>"
+            f"<h2>Dados do Produto</h2>"
+            f"<p><b>Código do Produto:</b> {product_code}</p>"
+            f"<p><b>Produto:</b> {produto}</p>"
+            f"<p><b>NCM:</b> {ncm}</p>"
+            f"<p><b>Aliquota:</b> {aliquota}</p>"
+        )
+
+        self.btn_voltar = QtWidgets.QPushButton('Nova Consulta')
+        self.btn_voltar.setStyleSheet("""QPushButton {
+            font-size: 20px;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #001F3F;
+        }
+        QPushButton:hover {
+            background-color: #005588;  /* Cor de fundo quando o mouse passa sobre o botão */
+            color: #ffffff;  /* Cor do texto quando o mouse passa sobre o botão */
+        }""")
+        self.btn_voltar.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.btn_voltar.clicked.connect(self.voltar)
+
+        self.btn_home = QtWidgets.QPushButton('Novo Fornecedor')
+        self.btn_home.setStyleSheet("""QPushButton {
+            font-size: 20px;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #001F3F;
+        }
+        QPushButton:hover {
+            background-color: #005588;  /* Cor de fundo quando o mouse passa sobre o botão */
+            color: #ffffff;  /* Cor do texto quando o mouse passa sobre o botão */
+        }""")
+        self.btn_home.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.btn_home.clicked.connect(self.home)
+
+        # Cria um grupo para o layout
+        group_box = QtWidgets.QGroupBox()
+        group_box.setStyleSheet("background-color: #2a3338; padding: 10px; border-radius: 10px;")
+
+        # Adiciona o layout ao grupo
+        group_box_layout = QtWidgets.QVBoxLayout()
+        group_box_layout.addWidget(self.info_label)
+
+        # Cria um layout horizontal para os botões
+        button_layout = QtWidgets.QHBoxLayout()
+        button_layout.addWidget(self.btn_home)
+        button_layout.addWidget(self.btn_voltar)
+
+        group_box_layout.addLayout(button_layout)  # Adiciona o layout de botões
+        group_box_layout.addStretch()
+        group_box.setLayout(group_box_layout)
+
+        # Cria um layout horizontal para centralizar o conteúdo
+        horizontal_layout = QtWidgets.QHBoxLayout()
+        horizontal_layout.addStretch()  # Adiciona stretch à esquerda
+        horizontal_layout.addWidget(group_box)  # Adiciona o grupo ao layout
+        horizontal_layout.addStretch()  # Adiciona stretch à direita
+
+        # Cria um layout vertical para adicionar o layout horizontal
+        vertical_layout = QtWidgets.QVBoxLayout()
+        vertical_layout.addStretch()  # Adiciona stretch no topo
+        vertical_layout.addLayout(horizontal_layout)  # Adiciona o layout horizontal
+        vertical_layout.addStretch()  # Adiciona stretch no fundo
+
+        self.setLayout(vertical_layout)
+
+    def voltar(self):
+        self.product_window.showMaximized()
+        self.close()
+
+
+    def home(self):
+        self.main_window.showMaximized()
+        self.close()
 
 class ProductWindowOutros(QtWidgets.QWidget):
     def __init__(self, main_window,razao_social, cnpj, cnae_valido, cnae_codigo, uf, simples):
@@ -477,17 +587,6 @@ class ProductWindowOutros(QtWidgets.QWidget):
             f"<p><b>CNPJ:</b> {cnpj} | <b>CNAE:</b> {cnae_codigo} | <b>UF:</b> {uf}</p>"
             f"<p><b>Decreto:</b> {cnae_valido} | <b>Simples:</b> {simples}</p>"
         )
-
-        # self.quantity_label = QtWidgets.QLabel('Insira a quantidade:')
-        # self.quantity_label.setStyleSheet("font-size: 16px; font-weight: bold;")
-        # self.quantity_input = QtWidgets.QLineEdit()
-        # self.quantity_input.setPlaceholderText('Digite a quantidade')
-        # self.quantity_input.setValidator(QIntValidator())
-        # self.quantity_input.setStyleSheet("font-size: 16px; padding: 6px;")
-
-        # quantity_layout = QtWidgets.QHBoxLayout()
-        # quantity_layout.addWidget(self.quantity_label)
-        # quantity_layout.addWidget(self.quantity_input)
 
         self.info_message = QtWidgets.QLabel()
         self.info_message.setWordWrap(True)
