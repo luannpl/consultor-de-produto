@@ -83,8 +83,19 @@ class UserLogin(QtWidgets.QWidget):
     def validate_login(self):
         user = self.user_input.text().strip()
         password = self.password_input.text().strip()
+        conexao = conectar_com_banco()
+        cursor = conexao.cursor()
+        cursor.execute("USE projeto_produtos")
+        cursor.execute("SELECT senha FROM user WHERE nome = %s", (user,))
+        result = cursor.fetchone()
+        print(result)
+        if not result:
+            QtWidgets.QMessageBox.warning(self, 'Erro', 'Usuário ou senha inválidos.')
+            return
+        result = result[0]
+        print(result)
 
-        if user == 'admin' and password == 'admin':
+        if password == result:
             self.main_window = MainWindow()
             usar_icone(self.main_window)
             self.main_window.showMaximized()
@@ -150,7 +161,8 @@ class MainWindow(QtWidgets.QWidget):
         self.info_message.setWordWrap(True)
         self.info_message.setStyleSheet("font-size: 16px; font-weight: bold; text-align: center;")
         self.info_message.setText(
-            "<p>Atualizado até 12/24</p>"
+            "<p>Atualizado até 12/24 v1.0</p>"
+            "<h2>Desenvolvido por: Assertivus Contábil</h2>"
         )
 
         info_message_layout = QtWidgets.QHBoxLayout()
