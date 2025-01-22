@@ -30,7 +30,7 @@ class UserLogin(QtWidgets.QWidget):
 
         # Campo de entrada para usuário
         self.user_label = QtWidgets.QLabel('Usuário:')
-        self.user_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #fff; margin:0")
+        self.user_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #fff; text-align: left;")
         self.user_input = QtWidgets.QLineEdit()
         self.user_input.setStyleSheet("font-size: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; ")
 
@@ -58,7 +58,9 @@ class UserLogin(QtWidgets.QWidget):
 
         # Cria um grupo para o layout
         group_box = QtWidgets.QGroupBox()
-        group_box.setStyleSheet("background-color: #2a3338; padding: 10px; border-radius: 10px;")
+        group_box.setStyleSheet("background-color: #2a3338; padding: 20px; border-radius: 10px;")
+        group_box.setMaximumWidth(500)  # Aumentando a largura máxima do grupo
+        group_box.setMinimumWidth(500)  # Define uma largura mínima para evitar colapso
 
         # Adiciona o layout ao grupo
         group_box_layout = QtWidgets.QVBoxLayout()
@@ -69,18 +71,50 @@ class UserLogin(QtWidgets.QWidget):
         group_box_layout.addWidget(self.login_button)
         group_box.setLayout(group_box_layout)
 
-        # Adicionar widgets ao layout principal
-        self.layout.addStretch()  # Adiciona stretch no topo
-        self.layout.addWidget(group_box)  # Adiciona o grupo ao layout
-        self.layout.addStretch()
+        # Mensagem de informação
+        self.info_message = QtWidgets.QLabel()
+        self.info_message.setWordWrap(True)
+        self.info_message.setStyleSheet("font-size: 20px; font-weight: bold; text-align: center; margin-top: 65px; color: #fff;")
+        data_atual = datetime.now()
+        
+        # Pega a data do mês anterior
+        data_anterior = data_atual - relativedelta(months=1)
+        mes_anterior = data_anterior.month
+        ano_anterior = data_anterior.year
 
-        # Cria um layout horizontal para centralizar o conteúdo
-        horizontal_layout = QtWidgets.QHBoxLayout()
-        horizontal_layout.addStretch()  # Adiciona stretch à esquerda
-        horizontal_layout.addLayout(self.layout)
-        horizontal_layout.addStretch()  # Adiciona stretch à direita
+        self.info_message.setText(f"Atualizado até {mes_anterior}/{ano_anterior} v1.0.7")
+        self.info_message.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.setLayout(horizontal_layout)
+        self.logo = QtWidgets.QLabel()
+        self.logo.setAlignment(QtCore.Qt.AlignRight)  # Alinha a logo à direita
+        self.logo.setPixmap(QtGui.QPixmap("images\\icone.png").scaled(100, 100))
+
+        self.footer_message = QtWidgets.QLabel()
+        self.footer_message.setWordWrap(True)
+        self.footer_message.setStyleSheet("font-size: 20px; font-weight: bold; color: #fff; text-align: center; margin-top: 70px;")
+        self.footer_message.setText("Desenvolvido por: Assertivus Contábil")
+        self.footer_message.setAlignment(QtCore.Qt.AlignLeft)
+
+        # Layout para centralizar o grupo de login
+
+        # Layout para o rodapé
+        footer_layout = QtWidgets.QHBoxLayout()
+        footer_layout.addWidget(self.footer_message)
+        footer_layout.addWidget(self.info_message)
+        footer_layout.addWidget(self.logo)
+        # footer_layout.addStretch()
+        center_layout = QtWidgets.QVBoxLayout()
+        center_layout.addStretch()
+        center_layout.addWidget(group_box, alignment=QtCore.Qt.AlignCenter)
+        # center_layout.addWidget(self.info_message, alignment=QtCore.Qt.AlignCenter)
+        center_layout.addStretch()
+
+        # Layout principal geral
+        main_layout = QtWidgets.QVBoxLayout()
+        main_layout.addLayout(center_layout)
+        main_layout.addLayout(footer_layout)
+
+        self.setLayout(main_layout)
 
     def validate_login(self):
         user = self.user_input.text().strip()
@@ -98,18 +132,18 @@ class UserLogin(QtWidgets.QWidget):
         print(result)
 
         if password == result:
-            self.main_window = MainWindow()
+            self.main_window = MainWindow(user)
             usar_icone(self.main_window)
             self.main_window.showMaximized()
             self.close()
         else:
             QtWidgets.QMessageBox.warning(self, 'Erro', 'Usuário ou senha inválidos.')
 class MainWindow(QtWidgets.QWidget):
-    def __init__(self):
+    def __init__(self, user):
         super().__init__()
         self.setWindowTitle('Consultor de Produto')
         self.setGeometry(400, 200, 900, 700)
-        
+        self.user = user
 
         # Layout principal
         self.layout = QtWidgets.QVBoxLayout()
@@ -163,41 +197,46 @@ class MainWindow(QtWidgets.QWidget):
 
         self.info_message = QtWidgets.QLabel()
         self.info_message.setWordWrap(True)
-        self.info_message.setStyleSheet("font-size: 16px; font-weight: bold; text-align: center;")
+        self.info_message.setStyleSheet("font-size: 20px; font-weight: bold; text-align: center; margin-top: 65px; color: #fff;")
         data_atual = datetime.now()
-        print(f"Data atual: {data_atual}")
-# Pega a data do mês anterior
+        
+        # Pega a data do mês anterior
         data_anterior = data_atual - relativedelta(months=1)
-
-        # Pega o mês e o ano do mês anterior
         mes_anterior = data_anterior.month
         ano_anterior = data_anterior.year
 
-        print(f"Mês anterior: {mes_anterior}")
-        print(f"Ano anterior: {ano_anterior}")
-        self.info_message.setText(
-            f"<p>Atualizado até {mes_anterior}/{ano_anterior} v1.0</p>"
-            "<h2>Desenvolvido por: Assertivus Contábil</h2>"
-        )
+        self.info_message.setText(f"Atualizado até {mes_anterior}/{ano_anterior} v1.0.7")
+        self.info_message.setAlignment(QtCore.Qt.AlignCenter)
 
-        info_message_layout = QtWidgets.QHBoxLayout()
-        info_message_layout.addStretch()  # Adiciona stretch à esquerda
-        info_message_layout.addWidget(self.info_message)
-        info_message_layout.addStretch()  # Adiciona stretch à direita
+        self.logo = QtWidgets.QLabel()
+        self.logo.setAlignment(QtCore.Qt.AlignRight)  # Alinha a logo à direita
+        self.logo.setPixmap(QtGui.QPixmap("images\\icone.png").scaled(100, 100))
 
-        # Adicionar widgets ao layout principal
-        self.layout.addStretch()  # Adiciona stretch no topo
-        self.layout.addWidget(group_box)  # Adiciona o grupo ao layout
-        self.layout.addStretch()
-        self.layout.addLayout(info_message_layout)
+        self.footer_message = QtWidgets.QLabel()
+        self.footer_message.setWordWrap(True)
+        self.footer_message.setStyleSheet("font-size: 20px; font-weight: bold; color: #fff; text-align: center; margin-top: 70px;")
+        self.footer_message.setText("Desenvolvido por: Assertivus Contábil")
+        self.footer_message.setAlignment(QtCore.Qt.AlignLeft)
 
-        # Cria um layout horizontal para centralizar o conteúdo
-        horizontal_layout = QtWidgets.QHBoxLayout()
-        horizontal_layout.addStretch()  # Adiciona stretch à esquerda
-        horizontal_layout.addLayout(self.layout)
-        horizontal_layout.addStretch()  # Adiciona stretch à direita
+        # Layout para centralizar o grupo de login
 
-        self.setLayout(horizontal_layout)
+        # Layout para o rodapé
+        footer_layout = QtWidgets.QHBoxLayout()
+        footer_layout.addWidget(self.footer_message)
+        footer_layout.addWidget(self.info_message)
+        footer_layout.addWidget(self.logo)
+        # footer_layout.addStretch()
+        center_layout = QtWidgets.QVBoxLayout()
+        center_layout.addStretch()
+        center_layout.addWidget(group_box, alignment=QtCore.Qt.AlignCenter)
+        center_layout.addStretch()
+
+        # Layout principal geral
+        main_layout = QtWidgets.QVBoxLayout()
+        main_layout.addLayout(center_layout)
+        main_layout.addLayout(footer_layout)
+
+        self.setLayout(main_layout)
     
     def showEvent(self, event):
         """Limpa o campo de entrada sempre que a janela for exibida."""
@@ -222,10 +261,9 @@ class MainWindow(QtWidgets.QWidget):
             if not cnae_codigo:  # Abrir próxima janela
                 QMessageBox.warning(self, 'Erro', 'Não foi possível obter informações para o CNPJ fornecido.')
                 return
-            
             self.product_window_ce_sim = ProductWindowCESIM(self,razao_social,cnpj ,existe_no_lista, cnae_codigo, uf, simples)
             usar_icone(self.product_window_ce_sim)  # Passando a variável correta
-            self.product_window_ce = ProductWindowCE(self,razao_social,cnpj ,existe_no_lista, cnae_codigo, uf, simples)  # Passando a variável correta
+            self.product_window_ce = ProductWindowCE(self,razao_social,cnpj ,existe_no_lista, cnae_codigo, uf, simples, self.user)  # Passando a variável correta
             usar_icone(self.product_window_ce)
             self.product_window_outros = ProductWindowOutros(self,razao_social,cnpj ,existe_no_lista, cnae_codigo, uf, simples)
             usar_icone(self.product_window_outros)  # Passando a variável correta
@@ -284,11 +322,13 @@ class ProductWindowCESIM(QtWidgets.QWidget):
         self.main_window.showMaximized()
         self.close()
 class ProductWindowCE(QtWidgets.QWidget):
-    def __init__(self, main_window,razao_social, cnpj, cnae_valido, cnae_codigo, uf, simples):
+    def __init__(self, main_window,razao_social, cnpj, cnae_valido, cnae_codigo, uf, simples, user):
         super().__init__()
         self.main_window = main_window
         self.setWindowTitle('Consultor de Produto')
         self.setGeometry(400, 200, 900, 700)
+        print('Usuário:', user)
+        
 
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.setContentsMargins(20, 20, 20, 20)
@@ -368,18 +408,49 @@ class ProductWindowCE(QtWidgets.QWidget):
         group_box.setLayout(group_box_layout)
 
         # Cria um layout horizontal para centralizar o conteúdo
-        horizontal_layout = QtWidgets.QHBoxLayout()
-        horizontal_layout.addStretch()  # Adiciona stretch à esquerda
-        horizontal_layout.addWidget(group_box)  # Adiciona o grupo ao layout
-        horizontal_layout.addStretch()  # Adiciona stretch à direita
+        self.info_message = QtWidgets.QLabel()
+        self.info_message.setWordWrap(True)
+        self.info_message.setStyleSheet("font-size: 20px; font-weight: bold; text-align: center; margin-top: 65px; color: #fff;")
+        data_atual = datetime.now()
+        
+        # Pega a data do mês anterior
+        data_anterior = data_atual - relativedelta(months=1)
+        mes_anterior = data_anterior.month
+        ano_anterior = data_anterior.year
 
-        # Cria um layout vertical para adicionar o layout horizontal
-        vertical_layout = QtWidgets.QVBoxLayout()
-        vertical_layout.addStretch()  # Adiciona stretch no topo
-        vertical_layout.addLayout(horizontal_layout)  # Adiciona o layout horizontal
-        vertical_layout.addStretch()  # Adiciona stretch no fundo
+        self.info_message.setText(f"Atualizado até {mes_anterior}/{ano_anterior} v1.0.7")
+        self.info_message.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.setLayout(vertical_layout)
+        self.logo = QtWidgets.QLabel()
+        self.logo.setAlignment(QtCore.Qt.AlignRight)  # Alinha a logo à direita
+        self.logo.setPixmap(QtGui.QPixmap("images\\icone.png").scaled(100, 100))
+
+        self.footer_message = QtWidgets.QLabel()
+        self.footer_message.setWordWrap(True)
+        self.footer_message.setStyleSheet("font-size: 20px; font-weight: bold; color: #fff; text-align: center; margin-top: 70px;")
+        self.footer_message.setText("Desenvolvido por: Assertivus Contábil")
+        self.footer_message.setAlignment(QtCore.Qt.AlignLeft)
+
+        # Layout para centralizar o grupo de login
+
+        # Layout para o rodapé
+        footer_layout = QtWidgets.QHBoxLayout()
+        footer_layout.addWidget(self.footer_message)
+        footer_layout.addWidget(self.info_message)
+        footer_layout.addWidget(self.logo)
+        # footer_layout.addStretch()
+        center_layout = QtWidgets.QVBoxLayout()
+        center_layout.addStretch()
+        center_layout.addWidget(group_box, alignment=QtCore.Qt.AlignCenter)
+        # center_layout.addWidget(self.info_message, alignment=QtCore.Qt.AlignCenter)
+        center_layout.addStretch()
+
+        # Layout principal geral
+        main_layout = QtWidgets.QVBoxLayout()
+        main_layout.addLayout(center_layout)
+        main_layout.addLayout(footer_layout)
+
+        self.setLayout(main_layout)
 
         self.cnae_valido = cnae_valido
         self.uf = uf
@@ -387,50 +458,16 @@ class ProductWindowCE(QtWidgets.QWidget):
         self.razao_social = razao_social
         self.cnae_codigo = cnae_codigo
         self.cnpj = cnpj
+        self.user = user
 
     def voltar(self):
         self.main_window.showMaximized()
         self.close()
 
-
-    def finish_process(self):
-        self.result_label.hide()
-        product_code = self.product_code_input.text().strip()
-
-        conexao = conectar_com_banco()
-        cursor = conexao.cursor()
-        cursor.execute("USE atacado_do_vale_comercio_de_alimentos_ltda")
-        cursor.execute("SELECT produto, ncm, aliquota FROM cadastro_tributacao WHERE codigo = %s", (product_code,))
-        result = cursor.fetchone()
-
-        if result:
-            produto, ncm, aliquota = result
-        else:
-            info_message = "Código de produto não encontrado."
-            QtWidgets.QMessageBox.warning(self, 'Erro', info_message)
-            return
-        # Criar mensagem de resumo
-        info_message = f"""
-            <p style="font-size: 28px;"><strong>Resumo</strong></p>
-            <p style="font-size: 18px;"><strong>Código do Produto:</strong> {product_code}</p>
-            <p style="font-size: 18px;"><strong>Produto:</strong> {produto}</p>
-            <p style="font-size: 18px;"><strong>NCM:</strong> {ncm}</p>
-            <p style="font-size: 18px;"><strong>Aliquota:</strong> {aliquota}</p>
-            <h1>Produto com imposto de {aliquota}</h1>
-        """
-        self.result_label.setText(info_message)
-        self.result_label.show()
-
-        # Gerar o PDF do resumo
-        
-        downloads_folder = os.path.join(os.path.expanduser("~"), "Downloads")
-        produtos_folder = os.path.join(downloads_folder, "produtos")
-        os.makedirs(produtos_folder, exist_ok=True)
-
-        pdf_path = os.path.join(produtos_folder, f'{product_code}_{self.razao_social}.pdf')
-        
-        self.generate_pdf(pdf_path, product_code, produto, ncm, aliquota )
-        QtWidgets.QMessageBox.information(self, 'PDF Salvo', f'PDF salvo em: {pdf_path}')
+    def showEvent(self, event):
+        """Limpa o campo de entrada sempre que a janela for exibida."""
+        self.product_code_input.clear()
+        super().showEvent(event)
 
     def generate_pdf(self, file_path, product_code, produto, ncm, aliquota):
         pdf = canvas.Canvas(file_path, pagesize=letter)
@@ -448,12 +485,23 @@ class ProductWindowCE(QtWidgets.QWidget):
         pdf.save()
     
     def resumo(self):
+        user = self.user
+        print(user)
         product_code = self.product_code_input.text().strip()
         conexao = conectar_com_banco()
         cursor = conexao.cursor()
-        cursor.execute("USE atacado_do_vale_comercio_de_alimentos_ltda")
-        cursor.execute("SELECT produto, ncm, aliquota FROM cadastro_tributacao WHERE codigo = %s", (product_code,))
-        result = cursor.fetchone()
+        if user == 'atacado':
+            cursor.execute("USE atacado_do_vale_comercio_de_alimentos_ltda")
+            cursor.execute("SELECT produto, ncm, aliquota FROM cadastro_tributacao WHERE codigo = %s", (product_code,))
+            result = cursor.fetchone()
+        elif user == 'jm':
+            cursor.execute("USE jm_supermercado_comercio_de_alimentos_ltda")
+            cursor.execute("SELECT produto, ncm, aliquota FROM cadastro_tributacao WHERE codigo = %s", (product_code,))
+            result = cursor.fetchone()
+        else:
+            cursor.execute("USE atacado_do_vale_comercio_de_alimentos_ltda")
+            cursor.execute("SELECT produto, ncm, aliquota FROM cadastro_tributacao WHERE codigo = %s", (product_code,))
+            result = cursor.fetchone()
 
         if result:
             produto, ncm, aliquota = result
@@ -470,6 +518,7 @@ class ProductWindowCE(QtWidgets.QWidget):
         self.generate_pdf(pdf_path, product_code, produto, ncm, aliquota )
         QtWidgets.QMessageBox.information(self, 'PDF Salvo', f'PDF salvo em: {pdf_path}')
         self.resumo_window = ResumoWindow(self, self.main_window ,self.razao_social, self.cnpj, self.cnae_valido, self.cnae_codigo, self.uf, self.simples, product_code, produto, ncm, aliquota)
+        usar_icone(self.resumo_window)
         self.resumo_window.showMaximized()
         self.close()
 
@@ -483,6 +532,20 @@ class ResumoWindow(QtWidgets.QWidget):
 
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.setContentsMargins(20, 20, 20, 20)
+
+        aliquota_adicional_convertida = 0
+        print(simples)
+        if simples == 'Não':
+            aliquota_adicional = 0
+        else:
+            aliquota_adicional = '3.00%'
+            aliquota_adicional_convertida = self.converter_aliquota(aliquota_adicional)
+        
+        
+        
+        aliquota_convertida = self.converter_aliquota(aliquota)
+        aliquota_total = float(aliquota_convertida) + float(aliquota_adicional_convertida)
+        aliquota_total = f"{aliquota_total:.2f}%"
 
         self.info_label = QtWidgets.QLabel()
         self.info_label.setWordWrap(True)
@@ -499,6 +562,8 @@ class ResumoWindow(QtWidgets.QWidget):
             f"<p><b>Produto:</b> {produto}</p>"
             f"<p><b>NCM:</b> {ncm}</p>"
             f"<p><b>Aliquota:</b> {aliquota}</p>"
+            f"<p><b>Aliquota Adicional(simples):</b> {aliquota_adicional}</p>"
+            f"<p><b>Aliquota Total:</b> {aliquota_total}</p>"
         )
 
         self.btn_voltar = QtWidgets.QPushButton('Nova Consulta')
@@ -547,18 +612,62 @@ class ResumoWindow(QtWidgets.QWidget):
         group_box.setLayout(group_box_layout)
 
         # Cria um layout horizontal para centralizar o conteúdo
-        horizontal_layout = QtWidgets.QHBoxLayout()
-        horizontal_layout.addStretch()  # Adiciona stretch à esquerda
-        horizontal_layout.addWidget(group_box)  # Adiciona o grupo ao layout
-        horizontal_layout.addStretch()  # Adiciona stretch à direita
+        self.info_message = QtWidgets.QLabel()
+        self.info_message.setWordWrap(True)
+        self.info_message.setStyleSheet("font-size: 20px; font-weight: bold; text-align: center; margin-top: 65px; color: #fff;")
+        data_atual = datetime.now()
+        
+        # Pega a data do mês anterior
+        data_anterior = data_atual - relativedelta(months=1)
+        mes_anterior = data_anterior.month
+        ano_anterior = data_anterior.year
 
-        # Cria um layout vertical para adicionar o layout horizontal
-        vertical_layout = QtWidgets.QVBoxLayout()
-        vertical_layout.addStretch()  # Adiciona stretch no topo
-        vertical_layout.addLayout(horizontal_layout)  # Adiciona o layout horizontal
-        vertical_layout.addStretch()  # Adiciona stretch no fundo
+        self.info_message.setText(f"Atualizado até {mes_anterior}/{ano_anterior} v1.0.7")
+        self.info_message.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.setLayout(vertical_layout)
+        self.logo = QtWidgets.QLabel()
+        self.logo.setAlignment(QtCore.Qt.AlignRight)  # Alinha a logo à direita
+        self.logo.setPixmap(QtGui.QPixmap("images\\icone.png").scaled(100, 100))
+
+        self.footer_message = QtWidgets.QLabel()
+        self.footer_message.setWordWrap(True)
+        self.footer_message.setStyleSheet("font-size: 20px; font-weight: bold; color: #fff; text-align: center; margin-top: 70px;")
+        self.footer_message.setText("Desenvolvido por: Assertivus Contábil")
+        self.footer_message.setAlignment(QtCore.Qt.AlignLeft)
+
+        # Layout para centralizar o grupo de login
+
+        # Layout para o rodapé
+        footer_layout = QtWidgets.QHBoxLayout()
+        footer_layout.addWidget(self.footer_message)
+        footer_layout.addWidget(self.info_message)
+        footer_layout.addWidget(self.logo)
+        # footer_layout.addStretch()
+        center_layout = QtWidgets.QVBoxLayout()
+        center_layout.addStretch()
+        center_layout.addWidget(group_box, alignment=QtCore.Qt.AlignCenter)
+        # center_layout.addWidget(self.info_message, alignment=QtCore.Qt.AlignCenter)
+        center_layout.addStretch()
+
+        # Layout principal geral
+        main_layout = QtWidgets.QVBoxLayout()
+        main_layout.addLayout(center_layout)
+        main_layout.addLayout(footer_layout)
+
+        self.setLayout(main_layout)
+
+    def converter_aliquota(self,aliquota):
+        """Converte uma string que representa uma alíquota para um número."""
+        # Remove o símbolo de porcentagem, se houver
+        aliquota = aliquota.strip().replace("%", "")
+        
+        # Converte a string para um número
+        try:
+            aliquota = float(aliquota)
+        except ValueError:
+            raise ValueError("Alíquota inválida")
+        
+        return aliquota
 
     def voltar(self):
         self.product_window.showMaximized()
