@@ -13,15 +13,24 @@ from PySide6.QtGui import QIntValidator
 from PySide6.QtWidgets import QMessageBox
 import asyncio
 from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+
+def recurso_caminho(relativo):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relativo)
+    return os.path.join(os.path.abspath("."), relativo)
+    
+caminho_imagem = recurso_caminho("images\\icone.png")
 
 class UserLogin(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Login')
         self.setGeometry(400, 200, 900, 700)
+        self.setStyleSheet("background-color: #030d18;")
 
         # Layout principal
         self.layout = QtWidgets.QVBoxLayout()
@@ -30,16 +39,19 @@ class UserLogin(QtWidgets.QWidget):
 
         # Campo de entrada para usuário
         self.user_label = QtWidgets.QLabel('Usuário:')
-        self.user_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #fff; text-align: left;")
+        self.user_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #fff; margin: 0px; padding: 0px;")
         self.user_input = QtWidgets.QLineEdit()
-        self.user_input.setStyleSheet("font-size: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; ")
+        self.user_input.setPlaceholderText('Digite o usuário')
+        self.user_input.setStyleSheet("font-size: 20px; padding: 8px; border: 1px solid #ccc; border-radius: 5px; ")
 
         # Campo de entrada para senha
         self.password_label = QtWidgets.QLabel('Senha:')
-        self.password_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #fff;")
+        self.password_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #fff; margin: 0px; padding: 0px;")
         self.password_input = QtWidgets.QLineEdit()
         self.password_input.setEchoMode(QtWidgets.QLineEdit.Password)
-        self.password_input.setStyleSheet("font-size: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; ")
+        self.password_input.setPlaceholderText('Digite a senha')
+        self.password_input.setStyleSheet("font-size: 20px; padding: 8px; border: 1px solid #ccc; border-radius: 5px; ")
+
 
         # Botão para login
         self.login_button = QtWidgets.QPushButton('Login')
@@ -47,10 +59,10 @@ class UserLogin(QtWidgets.QWidget):
             font-size: 20px;
             font-weight: bold;
             padding: 10px;
-            background-color:#001F3F;
+            background-color: #001F3F;
         }
         QPushButton:hover {
-            background-color:#005588;  /* Cor de fundo quando o mouse passa sobre o botão */
+            background-color: #005588;  /* Cor de fundo quando o mouse passa sobre o botão */
             color:#ffffff;  /* Cor do texto quando o mouse passa sobre o botão */
         }""")
         self.login_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
@@ -58,12 +70,14 @@ class UserLogin(QtWidgets.QWidget):
 
         # Cria um grupo para o layout
         group_box = QtWidgets.QGroupBox()
-        group_box.setStyleSheet("background-color: #2a3338; padding: 20px; border-radius: 10px;")
+        group_box.setStyleSheet("background-color: #440416; padding: 20px; border-radius: 10px;")
         group_box.setMaximumWidth(500)  # Aumentando a largura máxima do grupo
         group_box.setMinimumWidth(500)  # Define uma largura mínima para evitar colapso
 
         # Adiciona o layout ao grupo
         group_box_layout = QtWidgets.QVBoxLayout()
+        group_box_layout.setSpacing(10)  # Ajusta o espaçamento vertical entre os widgets
+        group_box_layout.setContentsMargins(10, 10, 10, 10)  # Ajusta margens internas do grupo
         group_box_layout.addWidget(self.user_label)
         group_box_layout.addWidget(self.user_input)
         group_box_layout.addWidget(self.password_label)
@@ -87,7 +101,7 @@ class UserLogin(QtWidgets.QWidget):
 
         self.logo = QtWidgets.QLabel()
         self.logo.setAlignment(QtCore.Qt.AlignRight)  # Alinha a logo à direita
-        self.logo.setPixmap(QtGui.QPixmap("images\\icone.png").scaled(100, 100))
+        self.logo.setPixmap(QtGui.QPixmap(caminho_imagem).scaled(100, 100))
 
         self.footer_message = QtWidgets.QLabel()
         self.footer_message.setWordWrap(True)
@@ -102,7 +116,7 @@ class UserLogin(QtWidgets.QWidget):
         footer_layout.addWidget(self.footer_message)
         footer_layout.addWidget(self.info_message)
         footer_layout.addWidget(self.logo)
-        
+
         center_layout = QtWidgets.QVBoxLayout()
         center_layout.addStretch()
         center_layout.addWidget(group_box, alignment=QtCore.Qt.AlignCenter)
@@ -137,11 +151,14 @@ class UserLogin(QtWidgets.QWidget):
             self.close()
         else:
             QtWidgets.QMessageBox.warning(self, 'Erro', 'Usuário ou senha inválidos.')
+    
+    
 class MainWindow(QtWidgets.QWidget):
     def __init__(self, user):
         super().__init__()
         self.setWindowTitle('Consultor de Produto')
         self.setGeometry(400, 200, 900, 700)
+        self.setStyleSheet("background-color: #030d18;")
         self.user = user
 
         # Layout principal
@@ -185,7 +202,7 @@ class MainWindow(QtWidgets.QWidget):
 
         # Cria um grupo para o layout
         group_box = QtWidgets.QGroupBox()
-        group_box.setStyleSheet("background-color: #2a3338; padding: 20px; border-radius: 10px;")
+        group_box.setStyleSheet("background-color: #440416; padding: 20px; border-radius: 10px;")
 
 
         # Adiciona o layout ao grupo
@@ -209,7 +226,7 @@ class MainWindow(QtWidgets.QWidget):
 
         self.logo = QtWidgets.QLabel()
         self.logo.setAlignment(QtCore.Qt.AlignRight)  # Alinha a logo à direita
-        self.logo.setPixmap(QtGui.QPixmap("images\\icone.png").scaled(100, 100))
+        self.logo.setPixmap(QtGui.QPixmap(caminho_imagem).scaled(100, 100))
 
         self.footer_message = QtWidgets.QLabel()
         self.footer_message.setWordWrap(True)
@@ -284,6 +301,7 @@ class ProductWindowCESIM(QtWidgets.QWidget):
         super().__init__()
         self.main_window = main_window
         self.setWindowTitle('Consultor de Produto')
+        self.setStyleSheet("background-color: #030d18;")
         self.setGeometry(400, 200, 900, 700)
 
         self.layout = QtWidgets.QVBoxLayout()
@@ -323,7 +341,7 @@ class ProductWindowCESIM(QtWidgets.QWidget):
         self.btn_voltar.clicked.connect(self.voltar)
 
         group_box = QtWidgets.QGroupBox()
-        group_box.setStyleSheet("background-color: #2a3338; padding: 16px; border-radius: 10px;")
+        group_box.setStyleSheet("background-color: #440416; padding: 16px; border-radius: 10px;")
         group_box.setFixedWidth(1000)
 
         group_box_layout = QtWidgets.QVBoxLayout()
@@ -348,7 +366,7 @@ class ProductWindowCESIM(QtWidgets.QWidget):
 
         self.logo = QtWidgets.QLabel()
         self.logo.setAlignment(QtCore.Qt.AlignRight)  # Alinha a logo à direita
-        self.logo.setPixmap(QtGui.QPixmap("images\\icone.png").scaled(100, 100))
+        self.logo.setPixmap(QtGui.QPixmap(caminho_imagem).scaled(100, 100))
 
         self.footer_message = QtWidgets.QLabel()
         self.footer_message.setWordWrap(True)
@@ -386,6 +404,7 @@ class ProductWindowCE(QtWidgets.QWidget):
         self.main_window = main_window
         self.setWindowTitle('Consultor de Produto')
         self.setGeometry(400, 200, 900, 700)
+        self.setStyleSheet("background-color: #030d18;")
         
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.setContentsMargins(20, 20, 20, 20)
@@ -444,7 +463,7 @@ class ProductWindowCE(QtWidgets.QWidget):
 
         # Cria um grupo para o layout
         group_box = QtWidgets.QGroupBox()
-        group_box.setStyleSheet("background-color: #2a3338; padding: 16px; border-radius: 10px;")
+        group_box.setStyleSheet("background-color: #440416; padding: 16px; border-radius: 10px;")
         group_box.setFixedWidth(800)
         # group_box.setMinimumWidth(600)
 
@@ -473,7 +492,7 @@ class ProductWindowCE(QtWidgets.QWidget):
 
         self.logo = QtWidgets.QLabel()
         self.logo.setAlignment(QtCore.Qt.AlignRight)  # Alinha a logo à direita
-        self.logo.setPixmap(QtGui.QPixmap("images\\icone.png").scaled(100, 100))
+        self.logo.setPixmap(QtGui.QPixmap(caminho_imagem).scaled(100, 100))
 
         self.footer_message = QtWidgets.QLabel()
         self.footer_message.setWordWrap(True)
@@ -519,24 +538,89 @@ class ProductWindowCE(QtWidgets.QWidget):
         self.product_code_input.clear()
         super().showEvent(event)
 
+    def converter_aliquota(self,aliquota):
+        """Converte uma string que representa uma alíquota para um número."""
+        # Remove o símbolo de porcentagem, se houver
+        aliquota = aliquota.strip().replace("%", "")
+        
+        # Converte a string para um número
+        try:
+            aliquota = float(aliquota)
+        except ValueError:
+            raise ValueError("Alíquota inválida")
+        
+        return aliquota
+
     def generate_pdf(self, file_path, product_code, produto, ncm, aliquota):
-        pdf = canvas.Canvas(file_path, pagesize=letter)
-        pdf.setFont("Helvetica", 12)
-        pdf.drawString(100, 750, "Resumo de Consulta")
+        try:
+            aliquota_adicional_convertida = 0
+            print(self.simples)
+            if self.simples == 'Não':
+                aliquota_adicional = 0
+            else:
+                aliquota_adicional = '3.00%'
+                aliquota_adicional_convertida = self.converter_aliquota(aliquota_adicional)
+            
+            
+            
+            aliquota_convertida = self.converter_aliquota(aliquota)
+            aliquota_total = float(aliquota_convertida) + float(aliquota_adicional_convertida)
+            aliquota_total = f"{aliquota_total:.2f}%"
+            # Verificar se o diretório existe e criar se necessário
+            output_dir = os.path.dirname(file_path)
+            os.makedirs(output_dir, exist_ok=True)
+            
+            # Criação do documento PDF
+            pdf = SimpleDocTemplate(file_path, pagesize=letter)
 
-        pdf.drawString(100, 730, f"Razão Social: {self.razao_social}")
-        pdf.drawString(100, 710, f"CNPJ: {self.cnpj}")
-        pdf.drawString(100, 690, f"CNAE: {self.cnae_codigo}")
-        pdf.drawString(100, 670, f"Código do Produto: {product_code}")
-        pdf.drawString(100, 650, f"Produto: {produto}")
-        pdf.drawString(100, 630, f"NCM: {ncm}")
-        pdf.drawString(100, 610, f"Aliquota: {aliquota}")
+            # Dados para a tabela
+            data = [
+                ["Campo", "Informação"],
+                ["Razão Social", self.razao_social],
+                ["CNPJ", self.cnpj],
+                ["CNAE", self.cnae_codigo],
+                ["UF", self.uf],
+                ["DECRETO", self.cnae_valido],
+                ["SIMPLES", self.simples],
+                ["Código do Produto", product_code],
+                ["Produto", produto],
+                ["NCM", ncm],
+                ["Alíquota", aliquota],
+                ["Alíquota (simples)", aliquota_adicional],
+                ["Alíquota Total", aliquota_total],
+            ]
+            
+            # Configuração da tabela
+            table = Table(data, colWidths=[150, 300])  # Define larguras das colunas
+            table.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.grey),  # Fundo cinza para o cabeçalho
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),  # Texto branco no cabeçalho
+                ("ALIGN", (0, 0), (-1, -1), "LEFT"),  # Alinhamento à esquerda
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),  # Fonte em negrito no cabeçalho
+                ("FONTSIZE", (0, 0), (-1, -1), 12),  # Tamanho da fonte
+                ("BOTTOMPADDING", (0, 0), (-1, 0), 12),  # Espaçamento abaixo do cabeçalho
+                ("BACKGROUND", (0, 1), (-1, -1), colors.beige),  # Fundo bege para as demais células
+                ("GRID", (0, 0), (-1, -1), 1, colors.black),  # Grelha preta em todas as células
+            ]))
+            
+            # Adiciona a tabela ao PDF
+            elements = [table]
+            pdf.build(elements)
+            
+            # Mensagem de sucesso
+            QMessageBox.information(self, "Sucesso", f"PDF gerado com sucesso em:\n{file_path}")
+        
+        except PermissionError:
+            # Trata o erro se o arquivo estiver aberto ou não puder ser gravado
+            QMessageBox.warning(self, "Erro", f"Não foi possível salvar o arquivo.\n"
+                                            f"Certifique-se de que o arquivo não está aberto")
+        except Exception as e:
+            # Trata qualquer outro erro genérico
+            QMessageBox.critical(self, "Erro", f"Ocorreu um erro ao gerar o PDF:\n{str(e)}")
 
-        pdf.save()
     
     def resumo(self):
         user = self.user
-        print(user)
         product_code = self.product_code_input.text().strip()
         conexao = conectar_com_banco()
         cursor = conexao.cursor()
@@ -565,8 +649,9 @@ class ProductWindowCE(QtWidgets.QWidget):
 
         pdf_path = os.path.join(produtos_folder, f'{product_code}_{self.razao_social}.pdf')
         
+        
         self.generate_pdf(pdf_path, product_code, produto, ncm, aliquota )
-        QtWidgets.QMessageBox.information(self, 'PDF Salvo', f'PDF salvo em: {pdf_path}')
+        # QtWidgets.QMessageBox.information(self, 'PDF Salvo', f'PDF salvo em: {pdf_path}')
         self.resumo_window = ResumoWindow(self, self.main_window ,self.razao_social, self.cnpj, self.cnae_valido, self.cnae_codigo, self.uf, self.simples, product_code, produto, ncm, aliquota)
         usar_icone(self.resumo_window)
         self.resumo_window.showMaximized()
@@ -579,6 +664,8 @@ class ResumoWindow(QtWidgets.QWidget):
         self.main_window = main_window
         self.setWindowTitle('Resumo da Consulta')
         self.setGeometry(400, 200, 900, 700)
+        self.setStyleSheet("background-color: #030d18;")
+
 
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.setContentsMargins(20, 20, 20, 20)
@@ -646,7 +733,7 @@ class ResumoWindow(QtWidgets.QWidget):
 
         # Cria um grupo para o layout
         group_box = QtWidgets.QGroupBox()
-        group_box.setStyleSheet("background-color: #2a3338; padding: 10px; border-radius: 10px;")
+        group_box.setStyleSheet("background-color: #440416; padding: 10px; border-radius: 10px;")
 
         # Adiciona o layout ao grupo
         group_box_layout = QtWidgets.QVBoxLayout()
@@ -677,7 +764,7 @@ class ResumoWindow(QtWidgets.QWidget):
 
         self.logo = QtWidgets.QLabel()
         self.logo.setAlignment(QtCore.Qt.AlignRight)  # Alinha a logo à direita
-        self.logo.setPixmap(QtGui.QPixmap("images\\icone.png").scaled(100, 100))
+        self.logo.setPixmap(QtGui.QPixmap(caminho_imagem).scaled(100, 100))
 
         self.footer_message = QtWidgets.QLabel()
         self.footer_message.setWordWrap(True)
@@ -734,6 +821,7 @@ class ProductWindowOutros(QtWidgets.QWidget):
         self.main_window = main_window
         self.setWindowTitle('Consultor de Produto')
         self.setGeometry(400, 200, 900, 700)
+        self.setStyleSheet("background-color: #030d18;")
 
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.setContentsMargins(20, 20, 20, 20)
@@ -772,7 +860,7 @@ class ProductWindowOutros(QtWidgets.QWidget):
         self.btn_voltar.clicked.connect(self.voltar)
 
         group_box = QtWidgets.QGroupBox()
-        group_box.setStyleSheet("background-color: #2a3338; padding: 16px; border-radius: 10px;")
+        group_box.setStyleSheet("background-color: #440416; padding: 16px; border-radius: 10px;")
         group_box.setFixedWidth(800)
 
         group_box_layout = QtWidgets.QVBoxLayout()
@@ -797,7 +885,7 @@ class ProductWindowOutros(QtWidgets.QWidget):
 
         self.logo = QtWidgets.QLabel()
         self.logo.setAlignment(QtCore.Qt.AlignRight)  # Alinha a logo à direita
-        self.logo.setPixmap(QtGui.QPixmap("images\\icone.png").scaled(100, 100))
+        self.logo.setPixmap(QtGui.QPixmap(caminho_imagem).scaled(100, 100))
 
         self.footer_message = QtWidgets.QLabel()
         self.footer_message.setWordWrap(True)
