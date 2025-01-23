@@ -14,7 +14,7 @@ from PySide6.QtWidgets import QMessageBox
 import asyncio
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Spacer
 
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
@@ -134,7 +134,7 @@ class UserLogin(QtWidgets.QWidget):
         password = self.password_input.text().strip()
         conexao = conectar_com_banco()
         cursor = conexao.cursor()
-        cursor.execute("USE projeto_produtos")
+        cursor.execute("USE railway")
         cursor.execute("SELECT senha FROM user WHERE nome = %s", (user,))
         result = cursor.fetchone()
         
@@ -561,17 +561,38 @@ class ProductWindowCE(QtWidgets.QWidget):
                 aliquota_adicional = '3.00%'
                 aliquota_adicional_convertida = self.converter_aliquota(aliquota_adicional)
             
-            
-            
             aliquota_convertida = self.converter_aliquota(aliquota)
             aliquota_total = float(aliquota_convertida) + float(aliquota_adicional_convertida)
             aliquota_total = f"{aliquota_total:.2f}%"
+            
             # Verificar se o diretório existe e criar se necessário
             output_dir = os.path.dirname(file_path)
             os.makedirs(output_dir, exist_ok=True)
             
             # Criação do documento PDF
             pdf = SimpleDocTemplate(file_path, pagesize=letter)
+
+            # Caminho para os logos
+            logo_assertivus = recurso_caminho("images\\icone.png")
+            if self.user == 'atacado':
+                logo_empresa = recurso_caminho("images\\atacado-logo.jpeg")
+            elif self.user == 'jm':
+                logo_empresa = recurso_caminho("images\\jm-logo.jpeg")
+            else:
+                logo_empresa = recurso_caminho("images\\icone.png")
+        
+
+            # Configuração das imagens
+            img_assertivus = Image(logo_assertivus, width=100, height=50)
+            img_empresa = Image(logo_empresa, width=100, height=50)
+            
+            # Criação do cabeçalho com as imagens lado a lado
+            logo_table = Table([[img_empresa, img_assertivus]], colWidths=[100, 100])
+            logo_table.setStyle(TableStyle([
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),  # Alinhamento centralizado
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),  # Alinhamento vertical
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 10),  # Espaçamento inferior
+            ]))
 
             # Dados para a tabela
             data = [
@@ -590,32 +611,30 @@ class ProductWindowCE(QtWidgets.QWidget):
                 ["Alíquota Total", aliquota_total],
             ]
             
-            # Configuração da tabela
-            table = Table(data, colWidths=[150, 300])  # Define larguras das colunas
+            # Configuração da tabela de dados
+            table = Table(data, colWidths=[150, 300])
             table.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), colors.grey),  # Fundo cinza para o cabeçalho
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),  # Texto branco no cabeçalho
-                ("ALIGN", (0, 0), (-1, -1), "LEFT"),  # Alinhamento à esquerda
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),  # Fonte em negrito no cabeçalho
-                ("FONTSIZE", (0, 0), (-1, -1), 12),  # Tamanho da fonte
-                ("BOTTOMPADDING", (0, 0), (-1, 0), 12),  # Espaçamento abaixo do cabeçalho
-                ("BACKGROUND", (0, 1), (-1, -1), colors.beige),  # Fundo bege para as demais células
-                ("GRID", (0, 0), (-1, -1), 1, colors.black),  # Grelha preta em todas as células
+                ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 12),
+                ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                ("GRID", (0, 0), (-1, -1), 1, colors.black),
             ]))
             
-            # Adiciona a tabela ao PDF
-            elements = [table]
+            # Adiciona os elementos ao PDF
+            elements = [logo_table, Spacer(1, 20), table]
             pdf.build(elements)
             
             # Mensagem de sucesso
             QMessageBox.information(self, "Sucesso", f"PDF gerado com sucesso em:\n{file_path}")
         
         except PermissionError:
-            # Trata o erro se o arquivo estiver aberto ou não puder ser gravado
             QMessageBox.warning(self, "Erro", f"Não foi possível salvar o arquivo.\n"
                                             f"Certifique-se de que o arquivo não está aberto")
         except Exception as e:
-            # Trata qualquer outro erro genérico
             QMessageBox.critical(self, "Erro", f"Ocorreu um erro ao gerar o PDF:\n{str(e)}")
 
     
@@ -624,18 +643,18 @@ class ProductWindowCE(QtWidgets.QWidget):
         product_code = self.product_code_input.text().strip()
         conexao = conectar_com_banco()
         cursor = conexao.cursor()
-        if user == 'atacado':
-            cursor.execute("USE atacado_do_vale_comercio_de_alimentos_ltda")
-            cursor.execute("SELECT produto, ncm, aliquota FROM cadastro_tributacao WHERE codigo = %s", (product_code,))
-            result = cursor.fetchone()
-        elif user == 'jm':
-            cursor.execute("USE jm_supermercado_comercio_de_alimentos_ltda")
-            cursor.execute("SELECT produto, ncm, aliquota FROM cadastro_tributacao WHERE codigo = %s", (product_code,))
-            result = cursor.fetchone()
-        else:
-            cursor.execute("USE atacado_do_vale_comercio_de_alimentos_ltda")
-            cursor.execute("SELECT produto, ncm, aliquota FROM cadastro_tributacao WHERE codigo = %s", (product_code,))
-            result = cursor.fetchone()
+        cursor.execute("USE railway")
+        cursor.execute(f"SELECT produto, ncm, aliquota FROM tabela_tributacao_{user} WHERE codigo = %s", (product_code,))
+        result = cursor.fetchone()
+        # if user == 'atacado':
+        # elif user == 'jm':
+        #     cursor.execute("USE jm_supermercado_comercio_de_alimentos_ltda")
+        #     cursor.execute("SELECT produto, ncm, aliquota FROM cadastro_tributacao WHERE codigo = %s", (product_code,))
+        #     result = cursor.fetchone()
+        # else:
+        #     cursor.execute("USE atacado_do_vale_comercio_de_alimentos_ltda")
+        #     cursor.execute("SELECT produto, ncm, aliquota FROM cadastro_tributacao WHERE codigo = %s", (product_code,))
+        #     result = cursor.fetchone()
 
         if result:
             produto, ncm, aliquota = result

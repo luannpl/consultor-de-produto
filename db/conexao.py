@@ -4,9 +4,11 @@ from mysql.connector import Error
 def conectar_com_banco():
     try:
         conexao = mysql.connector.connect(
-            host='localhost',
-            user= 'root',
-            password='1234'
+            host="autorack.proxy.rlwy.net",
+            user="root",
+            password="kQFyzyJcZRnjMirSCYZwhGivBQPegkbG",
+            database="railway",
+            port=25273
         )
         if conexao.is_connected():
             print('Conectado ao banco de dados')
