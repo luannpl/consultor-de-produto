@@ -102,11 +102,10 @@ class UserLogin(QtWidgets.QWidget):
         footer_layout.addWidget(self.footer_message)
         footer_layout.addWidget(self.info_message)
         footer_layout.addWidget(self.logo)
-        # footer_layout.addStretch()
+        
         center_layout = QtWidgets.QVBoxLayout()
         center_layout.addStretch()
         center_layout.addWidget(group_box, alignment=QtCore.Qt.AlignCenter)
-        # center_layout.addWidget(self.info_message, alignment=QtCore.Qt.AlignCenter)
         center_layout.addStretch()
 
         # Layout principal geral
@@ -124,12 +123,12 @@ class UserLogin(QtWidgets.QWidget):
         cursor.execute("USE projeto_produtos")
         cursor.execute("SELECT senha FROM user WHERE nome = %s", (user,))
         result = cursor.fetchone()
-        print(result)
+        
         if not result:
             QtWidgets.QMessageBox.warning(self, 'Erro', 'Usuário ou senha inválidos.')
             return
         result = result[0]
-        print(result)
+        
 
         if password == result:
             self.main_window = MainWindow(user)
@@ -292,31 +291,91 @@ class ProductWindowCESIM(QtWidgets.QWidget):
 
         self.info_label = QtWidgets.QLabel()
         self.info_label.setWordWrap(True)
-        self.info_label.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 10px;")
+        self.info_label.setStyleSheet("font-size: 20px; font-weight: bold;")
         self.info_label.setText(
             f"<h3>Razão Social: {razao_social}</h3>"
             f"<p><b>CNPJ:</b> {cnpj} | <b>CNAE:</b> {cnae_codigo} | <b>UF:</b> {uf}</p>"
             f"<p><b>Decreto:</b> {cnae_valido} | <b>Simples:</b> {simples}</p>"
+            f"<hr>"
         )
 
         self.info_message = QtWidgets.QLabel()
         self.info_message.setWordWrap(True)
         self.info_message.setStyleSheet("font-size: 20px; font-weight: bold; margin-bottom: 10px;")
         self.info_message.setText(
-            f"<h1>Este CNPJ está isento de impostos no Ceará.</h1>"
+            f"<h1>CNPJ ESTÁ ISENTO DE IMPOSTOS NO CEARÁ.</h1>"
         )
 
         self.btn_voltar = QtWidgets.QPushButton('Nova Consulta')
-        self.btn_voltar.setStyleSheet("font-size: 16px; font-weight: bold; padding: 10px; background-color: #001F3F;")
+        self.btn_voltar.setStyleSheet("""
+            QPushButton {
+                font-size: 20px;
+                font-weight: bold;
+                padding: 10px;
+                background-color: #001F3F;
+            }
+            QPushButton:hover {
+                background-color: #005588;  /* Cor de fundo quando o mouse passa sobre o botão */
+                color: #ffffff;  /* Cor do texto quando o mouse passa sobre o botão */
+            }
+        """)
         self.btn_voltar.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.btn_voltar.clicked.connect(self.voltar)
 
-        self.layout.addWidget(self.info_label)
-        self.layout.addWidget(self.info_message)
-        self.layout.addWidget(self.btn_voltar)
-        self.layout.addStretch()
+        group_box = QtWidgets.QGroupBox()
+        group_box.setStyleSheet("background-color: #2a3338; padding: 16px; border-radius: 10px;")
+        group_box.setFixedWidth(1000)
 
-        self.setLayout(self.layout)
+        group_box_layout = QtWidgets.QVBoxLayout()
+        group_box_layout.addWidget(self.info_label)
+        group_box_layout.addWidget(self.info_message)
+        group_box_layout.addWidget(self.btn_voltar)
+        group_box_layout.addStretch()
+        group_box.setLayout(group_box_layout)
+
+        self.info_message = QtWidgets.QLabel()
+        self.info_message.setWordWrap(True)
+        self.info_message.setStyleSheet("font-size: 20px; font-weight: bold; text-align: center; margin-top: 65px; color: #fff;")
+        data_atual = datetime.now()
+        
+        # Pega a data do mês anterior
+        data_anterior = data_atual - relativedelta(months=1)
+        mes_anterior = data_anterior.month
+        ano_anterior = data_anterior.year
+
+        self.info_message.setText(f"Atualizado até {mes_anterior}/{ano_anterior} v1.0.7")
+        self.info_message.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.logo = QtWidgets.QLabel()
+        self.logo.setAlignment(QtCore.Qt.AlignRight)  # Alinha a logo à direita
+        self.logo.setPixmap(QtGui.QPixmap("images\\icone.png").scaled(100, 100))
+
+        self.footer_message = QtWidgets.QLabel()
+        self.footer_message.setWordWrap(True)
+        self.footer_message.setStyleSheet("font-size: 20px; font-weight: bold; color: #fff; text-align: center; margin-top: 70px;")
+        self.footer_message.setText("Desenvolvido por: Assertivus Contábil")
+        self.footer_message.setAlignment(QtCore.Qt.AlignLeft)
+
+        # Layout para centralizar o grupo de login
+
+        # Layout para o rodapé
+        footer_layout = QtWidgets.QHBoxLayout()
+        footer_layout.addWidget(self.footer_message)
+        footer_layout.addWidget(self.info_message)
+        footer_layout.addWidget(self.logo)
+        # footer_layout.addStretch()
+        center_layout = QtWidgets.QVBoxLayout()
+        center_layout.addStretch()
+        center_layout.addWidget(group_box, alignment=QtCore.Qt.AlignCenter)
+        # center_layout.addWidget(self.info_message, alignment=QtCore.Qt.AlignCenter)
+        center_layout.addStretch()
+
+        # Layout principal geral
+        main_layout = QtWidgets.QVBoxLayout()
+        main_layout.addLayout(center_layout)
+        main_layout.addLayout(footer_layout)
+
+        self.setLayout(main_layout) 
 
     def voltar(self):
         self.main_window.showMaximized()
@@ -327,9 +386,7 @@ class ProductWindowCE(QtWidgets.QWidget):
         self.main_window = main_window
         self.setWindowTitle('Consultor de Produto')
         self.setGeometry(400, 200, 900, 700)
-        print('Usuário:', user)
         
-
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.setContentsMargins(20, 20, 20, 20)
 
@@ -385,12 +442,6 @@ class ProductWindowCE(QtWidgets.QWidget):
         self.btn_voltar.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.btn_voltar.clicked.connect(self.voltar)
 
-        # Campo para exibir a mensagem de resumo
-        self.result_label = QtWidgets.QLabel()
-        self.result_label.setWordWrap(True)
-        self.result_label.setStyleSheet("font-size: 14px; margin-top: 20px;")
-        self.result_label.hide()  # Esconde o campo inicialmente
-
         # Cria um grupo para o layout
         group_box = QtWidgets.QGroupBox()
         group_box.setStyleSheet("background-color: #2a3338; padding: 16px; border-radius: 10px;")
@@ -403,7 +454,6 @@ class ProductWindowCE(QtWidgets.QWidget):
         group_box_layout.addLayout(product_code_layout)
         group_box_layout.addWidget(self.finish_button)
         group_box_layout.addWidget(self.btn_voltar)
-        group_box_layout.addWidget(self.result_label)
         group_box_layout.addStretch()
         group_box.setLayout(group_box_layout)
 
@@ -450,7 +500,7 @@ class ProductWindowCE(QtWidgets.QWidget):
         main_layout.addLayout(center_layout)
         main_layout.addLayout(footer_layout)
 
-        self.setLayout(main_layout)
+        self.setLayout(main_layout) 
 
         self.cnae_valido = cnae_valido
         self.uf = uf
@@ -690,11 +740,12 @@ class ProductWindowOutros(QtWidgets.QWidget):
 
         self.info_label = QtWidgets.QLabel()
         self.info_label.setWordWrap(True)
-        self.info_label.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 10px;")
+        self.info_label.setStyleSheet("font-size: 20px; font-weight: bold;")
         self.info_label.setText(
             f"<h3>Razão Social: {razao_social}</h3>"
             f"<p><b>CNPJ:</b> {cnpj} | <b>CNAE:</b> {cnae_codigo} | <b>UF:</b> {uf}</p>"
             f"<p><b>Decreto:</b> {cnae_valido} | <b>Simples:</b> {simples}</p>"
+            f"<hr>"
         )
 
         self.info_message = QtWidgets.QLabel()
@@ -720,13 +771,61 @@ class ProductWindowOutros(QtWidgets.QWidget):
         self.btn_voltar.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.btn_voltar.clicked.connect(self.voltar)
 
-        self.layout.addWidget(self.info_label)
-        # self.layout.addLayout(quantity_layout)
-        self.layout.addWidget(self.info_message)
-        self.layout.addWidget(self.btn_voltar)
-        self.layout.addStretch()
+        group_box = QtWidgets.QGroupBox()
+        group_box.setStyleSheet("background-color: #2a3338; padding: 16px; border-radius: 10px;")
+        group_box.setFixedWidth(800)
 
-        self.setLayout(self.layout)
+        group_box_layout = QtWidgets.QVBoxLayout()
+        group_box_layout.addWidget(self.info_label)
+        group_box_layout.addWidget(self.info_message)
+        group_box_layout.addWidget(self.btn_voltar)
+        group_box_layout.addStretch()
+        group_box.setLayout(group_box_layout)
+
+        self.info_message = QtWidgets.QLabel()
+        self.info_message.setWordWrap(True)
+        self.info_message.setStyleSheet("font-size: 20px; font-weight: bold; text-align: center; margin-top: 65px; color: #fff;")
+        data_atual = datetime.now()
+        
+        # Pega a data do mês anterior
+        data_anterior = data_atual - relativedelta(months=1)
+        mes_anterior = data_anterior.month
+        ano_anterior = data_anterior.year
+
+        self.info_message.setText(f"Atualizado até {mes_anterior}/{ano_anterior} v1.0.7")
+        self.info_message.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.logo = QtWidgets.QLabel()
+        self.logo.setAlignment(QtCore.Qt.AlignRight)  # Alinha a logo à direita
+        self.logo.setPixmap(QtGui.QPixmap("images\\icone.png").scaled(100, 100))
+
+        self.footer_message = QtWidgets.QLabel()
+        self.footer_message.setWordWrap(True)
+        self.footer_message.setStyleSheet("font-size: 20px; font-weight: bold; color: #fff; text-align: center; margin-top: 70px;")
+        self.footer_message.setText("Desenvolvido por: Assertivus Contábil")
+        self.footer_message.setAlignment(QtCore.Qt.AlignLeft)
+
+        # Layout para centralizar o grupo de login
+
+        # Layout para o rodapé
+        footer_layout = QtWidgets.QHBoxLayout()
+        footer_layout.addWidget(self.footer_message)
+        footer_layout.addWidget(self.info_message)
+        footer_layout.addWidget(self.logo)
+        # footer_layout.addStretch()
+        center_layout = QtWidgets.QVBoxLayout()
+        center_layout.addStretch()
+        center_layout.addWidget(group_box, alignment=QtCore.Qt.AlignCenter)
+        # center_layout.addWidget(self.info_message, alignment=QtCore.Qt.AlignCenter)
+        center_layout.addStretch()
+
+        # Layout principal geral
+        main_layout = QtWidgets.QVBoxLayout()
+        main_layout.addLayout(center_layout)
+        main_layout.addLayout(footer_layout)
+
+        self.setLayout(main_layout) 
+
 
     def voltar(self):
         self.main_window.showMaximized()
